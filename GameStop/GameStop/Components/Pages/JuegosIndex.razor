@@ -1,0 +1,140 @@
+﻿@page "/juegos"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioJuegos _repositorio;
+<h3>JuegosIndex</h3>
+<a class="btn btn-success" href="juegos/nuevo">Agregar Juego</a>
+@if(_juegos == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+} 
+else if(_juegos.Count == 0)
+{
+    <h3>No existen juegos!</h3>
+} 
+else
+{
+    <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Personajes</th>
+                <th scope="col">Clasificación</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_juegos != null)
+            {
+                foreach (var juego in _juegos)
+                {
+                    <tr>
+                        <td>@juego.id</td>
+                        <td>@juego.name</td>
+                        <td>@juego.description</td>
+
+                        <td>
+                            @if (juego.Personajes != null && juego.Personajes.Count > 0)
+                            {
+                                @string.Join(", ", juego.Personajes.Select(p => p.nombre))
+                            }
+                            else
+                            {
+                                <span>Sin personajes</span>
+                            }
+                        </td>
+
+                        <td>@(juego.Clasificacion?.nombre ?? "Sin clasificación")</td>
+
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="() => Modificar(juego.id)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(juego)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No hay juegos disponibles.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a class="btn btn-success" href="clasificacion/nueva">Agregar Clasificacion</a>
+
+    <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Clasificacion</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_clasificaciones != null)
+            {
+                foreach (var clasificacion in _clasificaciones)
+                {
+                    <tr>
+                        <td>@clasificacion.id</td>
+                        <td>@clasificacion.nombre</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="() => ModificarClasificacion(clasificacion.id)">Editar</button> 
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarClasificacion(clasificacion)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No hay juegos disponibles.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+
+
+@code {
+    private List<Juego>? _juegos;
+    private List<Clasificacion>? _clasificaciones;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _juegos = await _repositorio.GetAll();
+        _clasificaciones = await _repositorio.GetClasificaciones();
+
+    }
+
+    private async void Eliminar(Juego juego)
+    {
+        await _repositorio.Delete(juego.id);
+        _juegos!.Remove(juego);
+        StateHasChanged();
+    }
+
+    private async void EliminarClasificacion(Clasificacion clasificacion)
+    {
+        await _repositorio.Delete(clasificacion.id);
+        _clasificaciones!.Remove(clasificacion);
+        StateHasChanged();
+    }
+
+    private void Modificar(int id)
+    {
+        _navigator.NavigateTo($"/juegos/editar/{id}");
+    }
+    //Modificar clasificacion 
+    private void ModificarClasificacion(int id)
+    {
+        _navigator.NavigateTo($"/clasificacion/editar/{id}");
+    }
+}

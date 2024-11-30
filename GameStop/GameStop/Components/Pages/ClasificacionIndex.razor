@@ -1,0 +1,41 @@
+﻿@page "/clasificacion/nueva"
+@page "/clasificacion/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioJuegos _repositorio;
+
+<h3>ClasificacionIndex</h3>
+<EditForm Model="_clasificacion" FormName="frmJuego" OnValidSubmit="Guardar">
+<DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_clasificacion.nombre" />
+            <ValidationMessage For="()=>_clasificacion.nombre" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Clasificacion? _clasificacion = new();
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.UpdateClasificacion(Id, _clasificacion!);
+        }
+        else
+        {
+            await _repositorio.AddClasificacion(_clasificacion!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/juegos");
+    }
+}

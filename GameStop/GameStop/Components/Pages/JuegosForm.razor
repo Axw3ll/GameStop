@@ -1,0 +1,112 @@
+﻿@page "/juegos/nuevo"
+@page "/juegos/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioJuegos _repositorio;
+
+<h3>JuegosForm</h3>
+<EditForm Model="_juego" FormName="frmJuego" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_juego.name" />
+            <ValidationMessage For="()=>_juego.name" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtDescripcion" class="col-2 col-form-label">Descripcion</label>
+        <div class="col-10">
+            <InputText id="txtDescripcion" class="form-control" @bind-Value="_juego.description" />
+            <ValidationMessage For="()=>_juego.description" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtClasificacion" class="col-2 col-form-label">Clasificacion</label>
+        <div class="col-10">
+            <InputSelect class="form-select" @bind-Value="_juego.ClasificacionId">
+                <option value="0" disabled="disabled">Seleccione clasificación...</option>
+                @foreach (Clasificacion clasificacion in _clasificaciones)
+                {
+                    <option value="@clasificacion.id">@clasificacion.nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="()=>_juego.description" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtPersonajes" class="col-2 col-form-label">Personajes</label>
+        <div class="col-10">
+            <InputSelect class="form-select" @bind-Value="_personajesSeleccionados" multiple size="3">
+                @foreach (Personaje personaje in _personajes)
+                {
+                    <option value="@personaje.id">@personaje.nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="()=>_juego.description" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Juego? _juego = new();
+    private List<Clasificacion> _clasificaciones = new();
+    private List<Personaje> _personajes = new();
+    private int[] _personajesSeleccionados = new int[] { };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clasificaciones = await _repositorio.GetClasificaciones();
+        _personajes = await _repositorio.GetPersonajes();
+        if (Id > 0)
+        {
+            _juego = await _repositorio.Get(Id);
+            if(_juego.Personajes.Count != 0 ){
+                _personajesSeleccionados = _juego.Personajes.Select(i => i.id).ToArray();
+            }
+            _mensaje = "Modificar";
+        }
+        else
+        {
+            _mensaje = "Nueva";
+        }
+    }
+
+    private async void Guardar()
+    {
+        if(_personajesSeleccionados.Count() > 0)
+        {
+            List<Personaje> personajes = new();
+            foreach(int idPersonaje in _personajesSeleccionados)
+            {
+                personajes.Add(_personajes.First(r => r.id == idPersonaje));
+
+            }
+            _juego.Personajes = personajes;
+        } 
+        else
+        {
+            _juego.Personajes = null;
+        }
+        if (Id > 0)
+        {
+            await _repositorio.Update(Id, _juego!);
+        }
+        else
+        {
+            await _repositorio.Add(_juego!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/juegos");
+    }
+}
