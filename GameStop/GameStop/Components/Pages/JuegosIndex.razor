@@ -99,6 +99,40 @@ else
         </tbody>
     </table>
 
+    <a class="btn btn-success" href="personaje/nuevo">Agregar nuevo personaje</a>
+
+    <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_personajes != null)
+            {
+                foreach (var personaje in _personajes)
+                {
+                    <tr>
+                        <td>@personaje.id</td>
+                        <td>@personaje.nombre</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="() => ModificarPersonaje(personaje.id)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarPersonaje(personaje)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No hay juegos disponibles.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
 }
 
 
@@ -106,11 +140,13 @@ else
 @code {
     private List<Juego>? _juegos;
     private List<Clasificacion>? _clasificaciones;
+    private List<Personaje>? _personajes;
 
     protected override async Task OnInitializedAsync()
     {
         _juegos = await _repositorio.GetAll();
         _clasificaciones = await _repositorio.GetClasificaciones();
+        _personajes = await _repositorio.GetPersonajes();
 
     }
 
@@ -123,8 +159,15 @@ else
 
     private async void EliminarClasificacion(Clasificacion clasificacion)
     {
-        await _repositorio.Delete(clasificacion.id);
+        await _repositorio.DeleteClasificacion(clasificacion.id);
         _clasificaciones!.Remove(clasificacion);
+        StateHasChanged();
+    }
+
+    private async void EliminarPersonaje(Personaje personaje)
+    {
+        await _repositorio.DeletePersonaje(personaje.id);
+        _personajes!.Remove(personaje);
         StateHasChanged();
     }
 
@@ -136,5 +179,10 @@ else
     private void ModificarClasificacion(int id)
     {
         _navigator.NavigateTo($"/clasificacion/editar/{id}");
+    }
+    //Modificar Personaje
+    private void ModificarPersonaje(int id)
+    {
+        _navigator.NavigateTo($"/personaje/editar/{id}");
     }
 }

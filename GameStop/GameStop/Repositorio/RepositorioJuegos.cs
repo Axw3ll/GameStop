@@ -79,5 +79,43 @@ namespace GameStop.Repositorio
                 await _context.SaveChangesAsync();
             }
         }
+        //Add Personajes
+        public async Task<Personaje> AddPersonaje(Personaje personaje)
+        {
+            await _context.Personajes.AddAsync(personaje);
+            await _context.SaveChangesAsync();
+            return personaje;
+        }
+        //Update Personje
+        public async Task UpdatePersonaje(int id, Personaje personaje)
+        {
+            var personajeActual = await _context.Personajes.FindAsync(id);
+            if (personajeActual != null)
+            {
+                personajeActual.nombre = personaje.nombre;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        //Delete Personaje
+        public async Task DeletePersonaje(int id)
+        {
+            var personaje = await _context.Personajes.FindAsync(id);
+            if(personaje != null)
+            {
+                _context.Personajes.Remove(personaje);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteClasificacion(int id)
+        {
+            var clasificacion = await _context.Clasificaciones.FindAsync(id);
+            if (clasificacion != null)
+            {
+                _context.Clasificaciones.Remove(clasificacion);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

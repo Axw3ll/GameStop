@@ -1,0 +1,42 @@
+﻿@page "/personaje/nuevo"
+@page "/personaje/editar/{Id:int}"
+
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioJuegos _repositorio
+<h3>PersonajeIndex</h3>
+<EditForm Model="_personaje" FormName="frmJuego" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_personaje.nombre" />
+            <ValidationMessage For="()=>_personaje.nombre" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Personaje? _personaje = new();
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.UpdatePersonaje(Id, _personaje!);
+        }
+        else
+        {
+            await _repositorio.AddPersonaje(_personaje!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/juegos");
+    }
+
+}
